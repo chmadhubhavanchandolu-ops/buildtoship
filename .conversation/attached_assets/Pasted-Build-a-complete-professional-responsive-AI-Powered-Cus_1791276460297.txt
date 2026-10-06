@@ -1,0 +1,496 @@
+Build a complete, professional, responsive AI-Powered Customer Support System as a production-ready web application.
+
+1. Project Objective
+
+Create an AI-powered customer support platform that can automatically understand and respond to common customer queries. When a query is too complex, sensitive, or cannot be confidently answered, the system must automatically escalate the conversation to a human support agent.
+
+The application should demonstrate a complete customer-support workflow from customer query → AI response → confidence evaluation → human escalation → agent resolution.
+
+2. Core Features
+
+Customer Interface
+
+Create a modern customer chat interface with:
+
+- Customer name/profile section
+- Real-time chat interface
+- Message input box
+- Send button
+- Loading/typing indicator
+- Timestamp for messages
+- Conversation history
+- Clear conversation option
+- Suggested questions/FAQ buttons
+- Support ticket creation option
+
+Example common queries:
+
+- "How can I reset my password?"
+- "How do I update my account details?"
+- "Where can I check my order?"
+- "How can I cancel my order?"
+- "What payment methods are supported?"
+- "How do I request a refund?"
+
+AI Support Agent
+
+Implement an AI chatbot that:
+
+1. Receives the customer's question.
+2. Understands the intent.
+3. Searches the available FAQ/knowledge base.
+4. Generates a helpful response.
+5. Assigns a confidence score.
+6. Determines whether the query can be handled automatically.
+
+Use a clear response structure such as:
+
+- Answer
+- Relevant information
+- Suggested next step
+
+If the AI does not have enough information, it must NOT invent an answer.
+
+Intelligent Escalation
+
+Create an escalation system based on AI confidence and query complexity.
+
+Escalate the conversation when:
+
+- AI confidence is below a configurable threshold.
+- The customer explicitly requests a human agent.
+- The query is outside the knowledge base.
+- The issue involves sensitive account/payment problems.
+- The customer indicates that the AI response was not helpful.
+- The issue requires manual verification.
+
+Example:
+
+AI Confidence: 42%
+
+Status:
+"Human agent required"
+
+Show the customer:
+
+"Your request has been forwarded to a human support agent. Please wait while an agent reviews your issue."
+
+3. Human Agent Dashboard
+
+Create a separate professional dashboard for support agents.
+
+Dashboard should include:
+
+- Total conversations
+- Active conversations
+- Pending escalations
+- Resolved conversations
+- Average response time
+- AI resolution rate
+
+Create a ticket/conversation table with:
+
+- Ticket ID
+- Customer name
+- Query
+- Priority
+- AI confidence
+- Status
+- Created time
+- Assigned agent
+- Action button
+
+Statuses:
+
+- AI Handling
+- Waiting for Agent
+- Assigned
+- In Progress
+- Resolved
+
+Agents should be able to:
+
+- Open a conversation
+- View complete chat history
+- See AI-generated summary
+- See escalation reason
+- Reply to the customer
+- Take over the conversation
+- Change priority
+- Resolve the ticket
+- Add internal notes
+
+4. Knowledge Base
+
+Create a simple knowledge-base management system.
+
+Include sample FAQs covering:
+
+- Account management
+- Password reset
+- Orders
+- Payments
+- Refunds
+- Shipping
+- Cancellation
+- Technical support
+
+Admin/agent should be able to:
+
+- Add FAQ
+- Edit FAQ
+- Delete FAQ
+- Search FAQs
+- View FAQ categories
+
+The AI should use this knowledge base when answering common questions.
+
+5. Ticket Priority
+
+Automatically classify tickets as:
+
+- Low
+- Medium
+- High
+- Critical
+
+Example:
+
+Payment failure → High
+
+Account security issue → Critical
+
+General FAQ → Low
+
+Allow agents to manually change priority.
+
+6. AI Conversation Summary
+
+When escalation occurs, automatically generate a short summary for the human agent.
+
+Example:
+
+Customer Issue:
+"Customer attempted to cancel order #10245 but cancellation failed."
+
+AI Summary:
+"Customer wants to cancel order #10245. The automated cancellation process failed. Manual verification is required."
+
+Also display:
+
+- Customer intent
+- Previous AI responses
+- Escalation reason
+- Recommended next action
+
+7. User Authentication
+
+Create simple authentication with:
+
+- Customer login
+- Agent login
+- Logout
+- Role-based access
+
+Roles:
+
+Customer
+Agent
+Admin
+
+Customers should only access their own conversations.
+
+Agents should access support tickets.
+
+Admins should manage users and the knowledge base.
+
+For the prototype, use secure demo authentication if a production authentication service is not configured.
+
+8. Database
+
+Use a proper database to store:
+
+Users
+
+- id
+- name
+- email
+- password/auth identifier
+- role
+- created_at
+
+Conversations
+
+- id
+- customer_id
+- assigned_agent_id
+- status
+- priority
+- ai_confidence
+- escalation_reason
+- created_at
+- updated_at
+
+Messages
+
+- id
+- conversation_id
+- sender_type
+- message
+- timestamp
+
+Knowledge Base
+
+- id
+- question
+- answer
+- category
+- keywords
+- created_at
+- updated_at
+
+Tickets
+
+- id
+- conversation_id
+- status
+- priority
+- assigned_agent_id
+- created_at
+- resolved_at
+
+9. AI Integration
+
+Design the application so an AI API can be connected through an environment variable.
+
+Do NOT hardcode API keys.
+
+Use:
+
+AI_API_KEY
+
+in the Replit Secrets/environment configuration.
+
+Create a clean AI service layer so the AI provider can easily be replaced later.
+
+If no API key is available, provide a demo/mock AI mode using the knowledge base so the application remains functional.
+
+10. UI/UX Requirements
+
+Create a modern SaaS-style interface.
+
+Design requirements:
+
+- Clean professional layout
+- Responsive design
+- Desktop + mobile support
+- Modern dashboard
+- Sidebar navigation
+- Cards for statistics
+- Professional chat bubbles
+- Status badges
+- Priority badges
+- Search and filtering
+- Loading states
+- Empty states
+- Error handling
+- Toast notifications
+- Accessible buttons and forms
+
+Suggested navigation:
+
+Customer:
+
+- Chat
+- My Tickets
+- Conversation History
+- Profile
+
+Agent:
+
+- Dashboard
+- Live Conversations
+- Escalated Tickets
+- Knowledge Base
+- Analytics
+- Settings
+
+Admin:
+
+- Dashboard
+- Users
+- Agents
+- Tickets
+- Knowledge Base
+- Analytics
+- Settings
+
+11. Analytics
+
+Create an analytics section showing:
+
+- Total conversations
+- AI-resolved conversations
+- Human-escalated conversations
+- AI resolution percentage
+- Average response time
+- Average resolution time
+- Open tickets
+- Resolved tickets
+
+Include simple charts and visual statistics.
+
+12. Important AI Safety Rules
+
+The AI must:
+
+- Never fabricate information.
+- Clearly state when it does not know something.
+- Escalate uncertain queries.
+- Never expose private customer information.
+- Never expose API keys.
+- Never claim that a human agent has responded unless an actual agent has responded.
+- Preserve the full conversation history during escalation.
+
+13. Demo Data
+
+Add realistic demo data so the application looks complete immediately after starting.
+
+Create:
+
+- 5 demo customers
+- 3 demo agents
+- 15+ FAQ entries
+- 10+ sample conversations
+- Several escalated tickets
+- Several resolved tickets
+
+Include a clear demo login section if authentication is mocked.
+
+14. Technical Requirements
+
+Choose a reliable modern stack suitable for Replit.
+
+Preferred:
+
+Frontend:
+React + TypeScript
+
+Styling:
+Tailwind CSS
+
+Backend:
+Node.js + Express
+
+Database:
+SQLite for the prototype, structured so it can later migrate to PostgreSQL.
+
+Use REST APIs between frontend and backend.
+
+Organize the code into clear modules:
+
+/client
+/server
+/database
+/components
+/pages
+/services
+/routes
+/utils
+
+Use reusable components and clean TypeScript types.
+
+15. API Endpoints
+
+Implement appropriate REST APIs, including:
+
+POST /api/auth/login
+POST /api/auth/logout
+
+GET /api/conversations
+POST /api/conversations
+GET /api/conversations/:id
+
+GET /api/conversations/:id/messages
+POST /api/conversations/:id/messages
+
+POST /api/ai/chat
+POST /api/conversations/:id/escalate
+
+GET /api/tickets
+GET /api/tickets/:id
+PATCH /api/tickets/:id
+
+GET /api/knowledge-base
+POST /api/knowledge-base
+PUT /api/knowledge-base/:id
+DELETE /api/knowledge-base/:id
+
+GET /api/analytics
+
+16. Error Handling
+
+Implement proper error handling for:
+
+- AI API failures
+- Database errors
+- Invalid login
+- Empty messages
+- Network failures
+- Missing knowledge-base results
+- Unauthorized access
+
+Show user-friendly error messages.
+
+17. Final Prototype Flow
+
+The final application should demonstrate this complete workflow:
+
+Customer opens support chat
+↓
+Customer asks a question
+↓
+AI analyzes the query
+↓
+AI searches knowledge base
+↓
+AI calculates confidence
+↓
+If confidence is high → AI answers automatically
+↓
+If confidence is low → Escalate to human agent
+↓
+Ticket appears in Agent Dashboard
+↓
+Agent opens ticket
+↓
+Agent sees conversation + AI summary + escalation reason
+↓
+Agent replies to customer
+↓
+Agent resolves ticket
+↓
+Conversation is marked as resolved
+
+18. Deliverables
+
+Build the actual working application, not just a UI mockup.
+
+Before finishing:
+
+1. Install all required dependencies.
+2. Create the database and seed demo data.
+3. Implement frontend and backend.
+4. Connect frontend to backend APIs.
+5. Implement AI/mock AI functionality.
+6. Test customer workflow.
+7. Test agent workflow.
+8. Test escalation workflow.
+9. Fix runtime and console errors.
+10. Make the application responsive.
+11. Add a clear README explaining setup and usage.
+12. Make sure the Replit Run button starts the complete application.
+
+Prioritize a functional end-to-end prototype over unnecessary features.
+
+The final result should look like a professional AI customer-support SaaS product suitable for a college project demonstration and future expansion.

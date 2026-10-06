@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "SupportDesk AI"
+description = "A responsive AI customer support platform for answering common questions from a verified knowledge base, escalating uncertain or sensitive issues, and helping human agents resolve tickets."
+version = "1.0.0"
+id = "artifacts/supportdesk-ai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24363
+
+[services.development]
+run = "pnpm --filter @workspace/supportdesk-ai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/supportdesk-ai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/supportdesk-ai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24363"
+BASE_PATH = "/"

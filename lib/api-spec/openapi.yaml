@@ -3,20 +3,25 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API for SupportDesk AI customer support and agent workflows
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: auth
+  - name: users
+  - name: dashboard
+  - name: conversations
+  - name: tickets
+  - name: knowledge
+  - name: analytics
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +29,749 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/login:
+    post:
+      operationId: demoLogin
+      tags: [auth]
+      summary: Sign in to a demo customer, agent, or admin account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Signed-in user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /auth/logout:
+    post:
+      operationId: demoLogout
+      tags: [auth]
+      summary: Sign out
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResult"
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current demo user
+      responses:
+        "200":
+          description: Current user, or null when signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /users:
+    get:
+      operationId: getUsers
+      tags: [users]
+      summary: List customer and support staff accounts for administrators
+      parameters:
+        - in: query
+          name: role
+          schema:
+            $ref: "#/components/schemas/UserRole"
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching demo accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+  /users/{id}:
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Change a demo user's role
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get support dashboard overview
+      responses:
+        "200":
+          description: Dashboard statistics and recent conversations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /conversations:
+    get:
+      operationId: getConversations
+      tags: [conversations]
+      summary: List conversations
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/ConversationStatus"
+        - in: query
+          name: priority
+          schema:
+            $ref: "#/components/schemas/Priority"
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        "200":
+          description: Matching conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [conversations]
+      summary: Start a customer support conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+  /conversations/{id}:
+    get:
+      operationId: getConversation
+      tags: [conversations]
+      summary: Get a conversation and its full message history
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+    patch:
+      operationId: updateConversation
+      tags: [conversations]
+      summary: Update conversation status or priority
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationUpdate"
+      responses:
+        "200":
+          description: Updated conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+  /conversations/{id}/messages:
+    get:
+      operationId: getConversationMessages
+      tags: [conversations]
+      summary: List conversation messages
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Ordered messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendConversationMessage
+      tags: [conversations]
+      summary: Send a customer or agent reply; customer messages are evaluated by the support AI
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "200":
+          description: Saved message and AI decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageSendResult"
+  /ai/chat:
+    post:
+      operationId: chatWithSupportAi
+      tags: [conversations]
+      summary: Create a conversation and evaluate its first customer message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatInput"
+      responses:
+        "200":
+          description: Created conversation and response or escalation decision
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageSendResult"
+  /conversations/{id}/escalate:
+    post:
+      operationId: escalateConversation
+      tags: [conversations]
+      summary: Escalate a conversation to a human agent
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EscalationInput"
+      responses:
+        "200":
+          description: Escalated conversation and agent summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+  /tickets:
+    get:
+      operationId: getTickets
+      tags: [tickets]
+      summary: List support tickets
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/ConversationStatus"
+        - in: query
+          name: priority
+          schema:
+            $ref: "#/components/schemas/Priority"
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ticket"
+  /tickets/{id}:
+    get:
+      operationId: getTicket
+      tags: [tickets]
+      summary: Get ticket with conversation history and AI handoff details
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketDetail"
+    patch:
+      operationId: updateTicket
+      tags: [tickets]
+      summary: Assign, prioritize, take over, or resolve a ticket
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketUpdate"
+      responses:
+        "200":
+          description: Updated ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketDetail"
+  /tickets/{id}/notes:
+    post:
+      operationId: addTicketNote
+      tags: [tickets]
+      summary: Add an internal agent note
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternalNoteInput"
+      responses:
+        "201":
+          description: Saved internal note
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalNote"
+  /knowledge-base:
+    get:
+      operationId: getKnowledgeBase
+      tags: [knowledge]
+      summary: Search and list knowledge base articles
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Knowledge base entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KnowledgeArticle"
+    post:
+      operationId: createKnowledgeArticle
+      tags: [knowledge]
+      summary: Add a knowledge base article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeArticleInput"
+      responses:
+        "201":
+          description: Created article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeArticle"
+  /knowledge-base/{id}:
+    put:
+      operationId: updateKnowledgeArticle
+      tags: [knowledge]
+      summary: Edit a knowledge base article
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KnowledgeArticleInput"
+      responses:
+        "200":
+          description: Updated article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KnowledgeArticle"
+    delete:
+      operationId: deleteKnowledgeArticle
+      tags: [knowledge]
+      summary: Delete a knowledge base article
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Deleted article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResult"
+  /analytics:
+    get:
+      operationId: getAnalytics
+      tags: [analytics]
+      summary: Get support performance analytics
+      responses:
+        "200":
+          description: Conversation and resolution analytics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analytics"
+  /settings:
+    get:
+      operationId: getSupportSettings
+      tags: [dashboard]
+      summary: Get escalation settings
+      responses:
+        "200":
+          description: Support settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportSettings"
+    put:
+      operationId: updateSupportSettings
+      tags: [dashboard]
+      summary: Update AI confidence threshold
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportSettingsInput"
+      responses:
+        "200":
+          description: Updated support settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportSettings"
 components:
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
   schemas:
     HealthStatus:
       type: object
       properties:
         status:
           type: string
-      required:
-        - status
-
+      required: [status]
+    SuccessResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required: [success]
+    UserRole:
+      type: string
+      enum: [customer, agent, admin]
+    ConversationStatus:
+      type: string
+      enum: [ai_handling, waiting_for_agent, assigned, in_progress, resolved]
+    Priority:
+      type: string
+      enum: [low, medium, high, critical]
+    SenderType:
+      type: string
+      enum: [customer, ai, agent, system]
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { $ref: "#/components/schemas/UserRole" }
+        avatar: { type: string }
+      required: [id, name, email, role, avatar]
+    LoginInput:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/UserRole"
+        userId:
+          type: string
+      required: [role]
+    UserUpdate:
+      type: object
+      properties:
+        role:
+          $ref: "#/components/schemas/UserRole"
+      required: [role]
+    AuthSession:
+      type: object
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/User"
+            - type: "null"
+        demoMode:
+          type: boolean
+      required: [user, demoMode]
+    Message:
+      type: object
+      properties:
+        id: { type: string }
+        conversationId: { type: string }
+        senderType: { $ref: "#/components/schemas/SenderType" }
+        senderName: { type: string }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+        confidence:
+          type: ["number", "null"]
+        helpful:
+          type: ["boolean", "null"]
+      required: [id, conversationId, senderType, senderName, content, createdAt, confidence, helpful]
+    InternalNote:
+      type: object
+      properties:
+        id: { type: string }
+        ticketId: { type: string }
+        authorName: { type: string }
+        content: { type: string }
+        createdAt: { type: string, format: date-time }
+      required: [id, ticketId, authorName, content, createdAt]
+    Conversation:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        customerEmail: { type: string }
+        assignedAgentId:
+          type: ["string", "null"]
+        assignedAgentName:
+          type: ["string", "null"]
+        status: { $ref: "#/components/schemas/ConversationStatus" }
+        priority: { $ref: "#/components/schemas/Priority" }
+        aiConfidence:
+          type: ["number", "null"]
+        escalationReason:
+          type: ["string", "null"]
+        intent:
+          type: ["string", "null"]
+        summary:
+          type: ["string", "null"]
+        recommendedNextAction:
+          type: ["string", "null"]
+        lastMessage:
+          type: ["string", "null"]
+        unreadCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, customerId, customerName, customerEmail, assignedAgentId, assignedAgentName, status, priority, aiConfidence, escalationReason, intent, summary, recommendedNextAction, lastMessage, unreadCount, createdAt, updatedAt]
+    ConversationDetail:
+      allOf:
+        - $ref: "#/components/schemas/Conversation"
+        - type: object
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: "#/components/schemas/Message"
+            internalNotes:
+              type: array
+              items:
+                $ref: "#/components/schemas/InternalNote"
+          required: [messages, internalNotes]
+    ConversationInput:
+      type: object
+      properties:
+        customerName: { type: string, minLength: 1 }
+        customerEmail: { type: string, format: email }
+        message: { type: string, minLength: 1 }
+      required: [customerName, customerEmail, message]
+    ConversationUpdate:
+      type: object
+      properties:
+        status: { $ref: "#/components/schemas/ConversationStatus" }
+        priority: { $ref: "#/components/schemas/Priority" }
+    MessageInput:
+      type: object
+      properties:
+        content: { type: string, minLength: 1 }
+      required: [content]
+    ChatInput:
+      type: object
+      properties:
+        customerName: { type: string, minLength: 1 }
+        customerEmail: { type: string, format: email }
+        message: { type: string, minLength: 1 }
+      required: [customerName, customerEmail, message]
+    MessageSendResult:
+      type: object
+      properties:
+        conversation:
+          $ref: "#/components/schemas/Conversation"
+        customerMessage:
+          $ref: "#/components/schemas/Message"
+        aiMessage:
+          oneOf:
+            - $ref: "#/components/schemas/Message"
+            - type: "null"
+        escalated: { type: boolean }
+        escalationReason:
+          type: ["string", "null"]
+        aiMode:
+          type: string
+          enum: [knowledge_base, provider]
+      required: [conversation, customerMessage, aiMessage, escalated, escalationReason, aiMode]
+    EscalationInput:
+      type: object
+      properties:
+        reason: { type: string }
+    Ticket:
+      allOf:
+        - $ref: "#/components/schemas/Conversation"
+        - type: object
+          properties:
+            ticketNumber: { type: string }
+            waitingSince: { type: string, format: date-time }
+          required: [ticketNumber, waitingSince]
+    TicketDetail:
+      allOf:
+        - $ref: "#/components/schemas/ConversationDetail"
+        - type: object
+          properties:
+            ticketNumber: { type: string }
+            waitingSince: { type: string, format: date-time }
+          required: [ticketNumber, waitingSince]
+    TicketUpdate:
+      type: object
+      properties:
+        status: { $ref: "#/components/schemas/ConversationStatus" }
+        priority: { $ref: "#/components/schemas/Priority" }
+        assignedAgentId:
+          type: ["string", "null"]
+        takeOver:
+          type: boolean
+    InternalNoteInput:
+      type: object
+      properties:
+        content: { type: string, minLength: 1 }
+      required: [content]
+    KnowledgeArticle:
+      type: object
+      properties:
+        id: { type: string }
+        question: { type: string }
+        answer: { type: string }
+        category: { type: string }
+        keywords:
+          type: array
+          items: { type: string }
+        updatedAt: { type: string, format: date-time }
+      required: [id, question, answer, category, keywords, updatedAt]
+    KnowledgeArticleInput:
+      type: object
+      properties:
+        question: { type: string, minLength: 3 }
+        answer: { type: string, minLength: 3 }
+        category: { type: string, minLength: 1 }
+        keywords:
+          type: array
+          items: { type: string }
+      required: [question, answer, category, keywords]
+    Dashboard:
+      type: object
+      properties:
+        totalConversations: { type: integer }
+        activeConversations: { type: integer }
+        pendingEscalations: { type: integer }
+        resolvedConversations: { type: integer }
+        averageResponseMinutes: { type: number }
+        aiResolutionRate: { type: number }
+        recentConversations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Conversation"
+        priorityCounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountByLabel"
+      required: [totalConversations, activeConversations, pendingEscalations, resolvedConversations, averageResponseMinutes, aiResolutionRate, recentConversations, priorityCounts]
+    CountByLabel:
+      type: object
+      properties:
+        label: { type: string }
+        count: { type: integer }
+      required: [label, count]
+    Analytics:
+      type: object
+      properties:
+        totalConversations: { type: integer }
+        aiResolvedConversations: { type: integer }
+        humanEscalatedConversations: { type: integer }
+        aiResolutionRate: { type: number }
+        averageResponseMinutes: { type: number }
+        averageResolutionMinutes: { type: number }
+        openTickets: { type: integer }
+        resolvedTickets: { type: integer }
+        weeklyVolume:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeeklyMetric"
+        statusBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountByLabel"
+      required: [totalConversations, aiResolvedConversations, humanEscalatedConversations, aiResolutionRate, averageResponseMinutes, averageResolutionMinutes, openTickets, resolvedTickets, weeklyVolume, statusBreakdown]
+    WeeklyMetric:
+      type: object
+      properties:
+        day: { type: string }
+        conversations: { type: integer }
+        aiResolved: { type: integer }
+        escalated: { type: integer }
+      required: [day, conversations, aiResolved, escalated]
+    SupportSettings:
+      type: object
+      properties:
+        confidenceThreshold: { type: number, minimum: 0, maximum: 1 }
+      required: [confidenceThreshold]
+    SupportSettingsInput:
+      type: object
+      properties:
+        confidenceThreshold: { type: number, minimum: 0, maximum: 1 }
+      required: [confidenceThreshold]
